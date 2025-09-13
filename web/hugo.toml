@@ -1,0 +1,12 @@
+baseURL = "/"
+languageCode = "en-us"
+title = "Photogrammetry Pipeline"
+theme = "custom"
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
+[params]
+  api_url = "http://localhost:5000"

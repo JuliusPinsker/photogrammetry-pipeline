@@ -1,191 +1,147 @@
 version: '3.8'
 
 services:
-  # Core pipeline orchestrator
-  pipeline-core:
+  # Web Interface Service
+  web:
     build: 
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+      - ./results:/app/results
+      - /home/fabi/projects/360_scenes:/app/360_scenes:ro
+    environment:
+      - CORE_API_URL=http://core:5000
+    depends_on:
+      - core
+      - redis
+
+  # Core Pipeline API
+  core:
+    build:
       context: ./core
       dockerfile: Dockerfile
-    container_name: photogrammetry-core
+    ports:
+      - "5000:5000"
     volumes:
       - ./data:/app/data
       - ./results:/app/results
-      - ./benchmarks:/app/benchmarks
-      - /home/fabi/projects/360_scenes:/app/test_data:ro
+      - /home/fabi/projects/360_scenes:/app/360_scenes:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - REDIS_URL=redis://redis:6379
-      - POSTGRES_URL=postgresql://postgres:postgres@postgres:5432/pipeline_db
+      - DATA_PATH=/app/data
+      - RESULTS_PATH=/app/results
+      - SCENES_PATH=/app/360_scenes
     depends_on:
       - redis
-      - postgres
-    networks:
-      - pipeline-network
-
-  # Web interface
-  web-interface:
-    build:
-      context: ./web-interface
-      dockerfile: Dockerfile
-    container_name: photogrammetry-web
-    ports:
-      - "8080:80"
-    volumes:
-      - ./data:/app/data
-      - ./results:/app/results
-    environment:
-      - API_BASE_URL=http://pipeline-core:5000
-    depends_on:
-      - pipeline-core
-    networks:
-      - pipeline-network
+    privileged: true
 
   # Redis for job queue
   redis:
     image: redis:7-alpine
-    container_name: photogrammetry-redis
+    ports:
+      - "6379:6379"
     volumes:
       - redis_data:/data
-    networks:
-      - pipeline-network
 
-  # PostgreSQL for metadata and results
-  postgres:
-    image: postgres:15
-    container_name: photogrammetry-postgres
-    environment:
-      - POSTGRES_DB=pipeline_db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./core/sql:/docker-entrypoint-initdb.d
-    networks:
-      - pipeline-network
-
-  # Traditional photogrammetry methods
+  # Traditional Photogrammetry Methods
   meshroom:
     build:
-      context: ./methods/meshroom
+      context: ./engines/meshroom
       dockerfile: Dockerfile
-    container_name: photogrammetry-meshroom
     volumes:
-      - ./data:/app/data
-      - ./results:/app/results
+      - ./data:/workspace/data
+      - ./results:/workspace/results
+    runtime: nvidia
     environment:
-      - METHOD_NAME=meshroom
-      - CORE_API_URL=http://pipeline-core:5000
-    depends_on:
-      - pipeline-core
-    networks:
-      - pipeline-network
+      - NVIDIA_VISIBLE_DEVICES=all
+    profiles:
+      - engines
 
   colmap:
     build:
-      context: ./methods/colmap
+      context: ./engines/colmap
       dockerfile: Dockerfile
-    container_name: photogrammetry-colmap
     volumes:
-      - ./data:/app/data
-      - ./results:/app/results
+      - ./data:/workspace/data
+      - ./results:/workspace/results
+    runtime: nvidia
     environment:
-      - METHOD_NAME=colmap
-      - CORE_API_URL=http://pipeline-core:5000
-    depends_on:
-      - pipeline-core
-    networks:
-      - pipeline-network
+      - NVIDIA_VISIBLE_DEVICES=all
+    profiles:
+      - engines
 
   openmvg:
     build:
-      context: ./methods/openmvg
+      context: ./engines/openmvg
       dockerfile: Dockerfile
-    container_name: photogrammetry-openmvg
     volumes:
-      - ./data:/app/data
-      - ./results:/app/results
-    environment:
-      - METHOD_NAME=openmvg
-      - CORE_API_URL=http://pipeline-core:5000
-    depends_on:
-      - pipeline-core
-    networks:
-      - pipeline-network
-
-  # Neural rendering methods (GPU required)
-  instant-ngp:
-    build:
-      context: ./methods/instant-ngp
-      dockerfile: Dockerfile
-    container_name: photogrammetry-instant-ngp
+      - ./data:/workspace/data
+      - ./results:/workspace/results
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
-      - METHOD_NAME=instant-ngp
-      - CORE_API_URL=http://pipeline-core:5000
+    profiles:
+      - engines
+
+  # Neural Methods
+  instant-ngp:
+    build:
+      context: ./engines/instant-ngp
+      dockerfile: Dockerfile
     volumes:
-      - ./data:/app/data
-      - ./results:/app/results
-    depends_on:
-      - pipeline-core
-    networks:
-      - pipeline-network
+      - ./data:/workspace/data
+      - ./results:/workspace/results
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    profiles:
+      - engines
 
   gaussian-splatting:
     build:
-      context: ./methods/gaussian-splatting
+      context: ./engines/gaussian-splatting
       dockerfile: Dockerfile
-    container_name: photogrammetry-gaussian-splatting
+    volumes:
+      - ./data:/workspace/data
+      - ./results:/workspace/results
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
-      - METHOD_NAME=gaussian-splatting
-      - CORE_API_URL=http://pipeline-core:5000
-    volumes:
-      - ./data:/app/data
-      - ./results:/app/results
-    depends_on:
-      - pipeline-core
-    networks:
-      - pipeline-network
+    profiles:
+      - engines
 
-  mobile-nerf:
+  mobilenerf:
     build:
-      context: ./methods/mobile-nerf
+      context: ./engines/mobilenerf
       dockerfile: Dockerfile
-    container_name: photogrammetry-mobile-nerf
     volumes:
-      - ./data:/app/data
-      - ./results:/app/results
+      - ./data:/workspace/data
+      - ./results:/workspace/results
     environment:
-      - METHOD_NAME=mobile-nerf
-      - CORE_API_URL=http://pipeline-core:5000
-    depends_on:
-      - pipeline-core
-    networks:
-      - pipeline-network
+      - CUDA_VISIBLE_DEVICES=0
+    profiles:
+      - engines
 
   pifuhd:
     build:
-      context: ./methods/pifuhd
+      context: ./engines/pifuhd
       dockerfile: Dockerfile
-    container_name: photogrammetry-pifuhd
+    volumes:
+      - ./data:/workspace/data
+      - ./results:/workspace/results
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
-      - METHOD_NAME=pifuhd
-      - CORE_API_URL=http://pipeline-core:5000
-    volumes:
-      - ./data:/app/data
-      - ./results:/app/results
-    depends_on:
-      - pipeline-core
-    networks:
-      - pipeline-network
+    profiles:
+      - engines
 
 volumes:
   redis_data:
-  postgres_data:
 
 networks:
-  pipeline-network:
-    driver: bridge
+  default:
+    name: photogrammetry-pipeline

@@ -1,0 +1,11 @@
+torch==2.0.1
+torchvision==0.15.2
+torchaudio==2.0.2
+numpy==1.24.3
+opencv-python==4.8.1.78
+scikit-image==0.21.0
+trimesh==3.23.5
+matplotlib==3.7.2
+tqdm==4.66.1
+imageio==2.31.3
+Pillow==10.0.1

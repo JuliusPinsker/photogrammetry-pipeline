@@ -1,0 +1,22 @@
+{
+  "name": "photogrammetry-pipeline-web",
+  "version": "1.0.0",
+  "description": "Web interface for photogrammetry pipeline",
+  "scripts": {
+    "dev": "hugo server -D --bind 0.0.0.0",
+    "build": "hugo --minify",
+    "build-css": "tailwindcss -i ./assets/css/input.css -o ./assets/css/style.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.6",
+    "@tailwindcss/typography": "^0.5.10",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5"
+  },
+  "dependencies": {
+    "alpinejs": "^3.13.2",
+    "three": "^0.157.0",
+    "serve": "^14.2.1"
+  }
+}
