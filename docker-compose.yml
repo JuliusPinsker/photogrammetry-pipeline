@@ -55,7 +55,7 @@ services:
     volumes:
       - ./data:/workspace/data
       - ./results:/workspace/results
-    runtime: nvidia
+    # Optional GPU acceleration for feature extraction
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
     profiles:
@@ -68,7 +68,7 @@ services:
     volumes:
       - ./data:/workspace/data
       - ./results:/workspace/results
-    runtime: nvidia
+    # Optional GPU acceleration for stereo processing
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
     profiles:
@@ -81,13 +81,11 @@ services:
     volumes:
       - ./data:/workspace/data
       - ./results:/workspace/results
-    runtime: nvidia
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
+    # CPU-only method, no GPU required
     profiles:
       - engines
 
-  # Neural Methods
+  # Neural Methods (GPU Required)
   instant-ngp:
     build:
       context: ./engines/instant-ngp
@@ -98,6 +96,13 @@ services:
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     profiles:
       - engines
 
@@ -111,6 +116,13 @@ services:
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     profiles:
       - engines
 
@@ -121,6 +133,7 @@ services:
     volumes:
       - ./data:/workspace/data
       - ./results:/workspace/results
+    # CPU-optimized method, optional GPU acceleration
     environment:
       - CUDA_VISIBLE_DEVICES=0
     profiles:
@@ -136,6 +149,13 @@ services:
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     profiles:
       - engines
 

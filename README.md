@@ -250,16 +250,34 @@ Our evaluation uses multiple dataset categories to ensure comprehensive assessme
 - Docker 20.10+ with Docker Compose V2 (docker compose command)
 - 16GB+ RAM (32GB+ recommended for optimal performance)
 - 100GB+ free disk space for models and results
-- NVIDIA GPU with 8GB+ VRAM (optional but recommended for neural methods)
+- NVIDIA GPU with 6GB+ VRAM (8GB+ recommended for neural methods)
 - Linux/Windows/macOS with x86_64 architecture
+
+**GPU Requirements by Method:**
+- **Instant-NGP**: 6GB+ VRAM, CUDA 11.8+ compatible
+- **3D Gaussian Splatting**: 6GB+ VRAM, CUDA 11.8+ compatible  
+- **PIFuHD**: 8GB+ VRAM, CUDA 11.8+ compatible
+- **Traditional Methods**: CPU-only, optional GPU acceleration
+- **MobileNeRF**: CPU-optimized, optional GPU acceleration
+
+**Important**: Run `./test-gpu.sh` before setup to verify GPU compatibility.
 
 **NVIDIA Docker Setup (for GPU acceleration):**
 ```bash
-# Ubuntu/Debian
+# Test GPU capabilities first
+./test-gpu.sh
+
+# If NVIDIA Docker runtime is missing, install it:
+sudo ./install-nvidia-docker.sh
+
+# Ubuntu/Debian manual installation:
 distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
-curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
-curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
-sudo apt update && sudo apt install nvidia-docker2
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | \
+  sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo apt update && sudo apt install nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
 sudo systemctl restart docker
 
 # Test GPU access

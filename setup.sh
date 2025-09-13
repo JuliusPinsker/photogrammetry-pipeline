@@ -22,14 +22,52 @@ if ! command -v docker &> /dev/null || ! docker compose version &> /dev/null; th
 fi
 
 # Check for NVIDIA Docker (optional but recommended)
-if command -v nvidia-docker &> /dev/null || docker info | grep -q nvidia; then
-    echo "✅ NVIDIA Docker support detected"
-    GPU_SUPPORT=true
+echo "🔍 Checking GPU support..."
+GPU_SUPPORT=false
+GPU_DRIVER_VERSION=""
+GPU_MEMORY=""
+
+# Check if nvidia-smi is available (NVIDIA driver installed)
+if command -v nvidia-smi &> /dev/null; then
+    echo "✅ NVIDIA drivers detected"
+    GPU_DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader,nounits | head -n1)
+    GPU_MEMORY=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | head -n1)
+    echo "   Driver version: $GPU_DRIVER_VERSION"
+    echo "   GPU memory: ${GPU_MEMORY}MB"
+    
+    # Check if Docker can access NVIDIA runtime
+    if docker run --rm --gpus all nvidia/cuda:11.8-base-ubuntu20.04 nvidia-smi &> /dev/null; then
+        echo "✅ NVIDIA Docker runtime working"
+        GPU_SUPPORT=true
+    else
+        echo "❌ NVIDIA Docker runtime not working"
+        echo "   Docker can't access GPU. Please install nvidia-docker2:"
+        echo "   https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html"
+        GPU_SUPPORT=false
+    fi
 else
-    echo "⚠️  NVIDIA Docker not detected. GPU-accelerated methods will not be available."
-    echo "   To enable GPU support, install nvidia-docker2:"
+    echo "⚠️  NVIDIA drivers not detected"
+    echo "   GPU-accelerated methods will not be available."
+    echo "   To enable GPU support:"
+    echo "   1. Install NVIDIA drivers"
+    echo "   2. Install nvidia-docker2"
     echo "   https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html"
     GPU_SUPPORT=false
+fi
+
+# Verify GPU memory requirements for neural methods
+if [ "$GPU_SUPPORT" = true ]; then
+    GPU_MEMORY_INT=$(echo $GPU_MEMORY | sed 's/[^0-9]//g')
+    if [ "$GPU_MEMORY_INT" -lt 6000 ]; then
+        echo "⚠️  GPU memory (${GPU_MEMORY}MB) may be insufficient for neural methods"
+        echo "   Recommended: 8GB+ for optimal performance"
+        echo "   Some methods may fail or run very slowly"
+    elif [ "$GPU_MEMORY_INT" -lt 8000 ]; then
+        echo "⚠️  GPU memory (${GPU_MEMORY}MB) is minimal for neural methods"
+        echo "   Some high-resolution reconstructions may fail"
+    else
+        echo "✅ GPU memory (${GPU_MEMORY}MB) sufficient for all neural methods"
+    fi
 fi
 
 # Create necessary directories
@@ -42,6 +80,19 @@ chmod 755 data results benchmarks
 # Build core services
 echo "🔨 Building core services..."
 docker compose build web core
+
+# Test GPU base image if GPU support is available
+if [ "$GPU_SUPPORT" = true ]; then
+    echo "🧪 Testing NVIDIA CUDA base image..."
+    if docker run --rm --gpus all nvidia/cuda:11.8-cudnn8-devel-ubuntu20.04 nvidia-smi &> /dev/null; then
+        echo "✅ NVIDIA CUDA 11.8 base image working"
+    else
+        echo "❌ NVIDIA CUDA 11.8 base image failed"
+        echo "   This may cause GPU method builds to fail"
+        echo "   Check CUDA compatibility with your driver"
+        GPU_SUPPORT=false
+    fi
+fi
 
 echo "🎯 Building reconstruction engines..."
 
@@ -58,15 +109,46 @@ docker compose build openmvg
 if [ "$GPU_SUPPORT" = true ]; then
     # Build neural methods (require GPU)
     echo "   Building Instant-NGP..."
-    docker compose build instant-ngp
+    if docker compose build instant-ngp; then
+        echo "✅ Instant-NGP built successfully"
+        # Test GPU access in container
+        if docker run --rm --gpus all photogrammetry-pipeline-instant-ngp nvidia-smi &> /dev/null; then
+            echo "✅ Instant-NGP GPU access working"
+        else
+            echo "⚠️  Instant-NGP GPU access failed"
+        fi
+    else
+        echo "❌ Instant-NGP build failed"
+    fi
 
     echo "   Building 3D Gaussian Splatting..."
-    docker compose build gaussian-splatting
+    if docker compose build gaussian-splatting; then
+        echo "✅ 3D Gaussian Splatting built successfully"
+        # Test GPU access in container
+        if docker run --rm --gpus all photogrammetry-pipeline-gaussian-splatting nvidia-smi &> /dev/null; then
+            echo "✅ 3D Gaussian Splatting GPU access working"
+        else
+            echo "⚠️  3D Gaussian Splatting GPU access failed"
+        fi
+    else
+        echo "❌ 3D Gaussian Splatting build failed"
+    fi
 
     echo "   Building PIFuHD..."
-    docker compose build pifuhd
+    if docker compose build pifuhd; then
+        echo "✅ PIFuHD built successfully"
+        # Test GPU access in container
+        if docker run --rm --gpus all photogrammetry-pipeline-pifuhd nvidia-smi &> /dev/null; then
+            echo "✅ PIFuHD GPU access working"
+        else
+            echo "⚠️  PIFuHD GPU access failed"
+        fi
+    else
+        echo "❌ PIFuHD build failed"
+    fi
 else
     echo "   Skipping GPU-dependent engines (Instant-NGP, Gaussian Splatting, PIFuHD)"
+    echo "   Reason: No GPU support detected"
 fi
 
 # Build mobile-optimized method
