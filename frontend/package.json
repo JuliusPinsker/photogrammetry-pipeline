@@ -1,0 +1,19 @@
+{
+  "name": "photogrammetry-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for 3D Reconstruction Comparison Platform",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/input.css -o ./static/css/style.css --minify",
+    "watch:css": "tailwindcss -i ./src/input.css -o ./static/css/style.css --watch",
+    "dev": "hugo server --bind 0.0.0.0 --port 1313"
+  },
+  "dependencies": {
+    "tailwindcss": "3.4.1",
+    "filepond": "^4.30.4",
+    "three": "^0.160.1",
+    "@tailwindcss/forms": "^0.5.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.10"
+  }
+}

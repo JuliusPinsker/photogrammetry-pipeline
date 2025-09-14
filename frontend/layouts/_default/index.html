@@ -1,0 +1,118 @@
+{{ define "main" }}
+<div class="max-w-7xl mx-auto">
+    <!-- Hero Section -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">
+            3D Reconstruction Comparison Platform
+        </h1>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            Compare 5 non-neural 3D reconstruction tools (COLMAP, OpenMVS, PMVS2, AliceVision, OpenSfM) 
+            with drag-and-drop image selection and real-time visualization.
+        </p>
+    </div>
+
+    <!-- Tool Selection -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Select Reconstruction Tools</h2>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {{ range $tool := slice "COLMAP" "OpenMVS" "PMVS2" "AliceVision" "OpenSfM" }}
+            <label class="card cursor-pointer hover:shadow-lg transition-shadow">
+                <input type="checkbox" name="tools" value="{{ $tool }}" class="sr-only" checked>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span class="text-primary-600 font-bold">{{ substr $tool 0 2 }}</span>
+                    </div>
+                    <span class="text-sm font-medium">{{ $tool }}</span>
+                </div>
+            </label>
+            {{ end }}
+        </div>
+    </div>
+
+    <!-- Dataset Selection -->
+    {{ partial "dataset-selector.html" . }}
+
+    <!-- Image Upload -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Upload Images</h2>
+        <div class="card">
+            <div class="upload-area" id="upload-area">
+                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <p class="text-lg text-gray-600 mb-2">Drag and drop images here</p>
+                <p class="text-sm text-gray-500">or click to browse files</p>
+                <input type="file" id="image-upload" multiple accept="image/*" class="hidden">
+            </div>
+        </div>
+    </div>
+
+    <!-- Reconstruction Controls -->
+    <div class="mb-8">
+        <div class="flex flex-wrap gap-4 items-center">
+            <button id="start-reconstruction" class="btn btn-primary disabled:opacity-50" disabled>
+                Start Reconstruction
+            </button>
+            <button id="clear-images" class="btn btn-secondary">
+                Clear Images
+            </button>
+            <div class="ml-auto">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Max Resolution</label>
+                <select id="max-resolution" class="border border-gray-300 rounded-md px-3 py-2">
+                    <option value="1024">1K (1024px)</option>
+                    <option value="2048" selected>2K (2048px)</option>
+                    <option value="4096">4K (4096px)</option>
+                    <option value="8192">8K (8192px)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div id="progress-section" class="mb-8 hidden">
+        <h2 class="text-2xl font-semibold mb-4">Reconstruction Progress</h2>
+        <div class="card">
+            <div class="space-y-4">
+                {{ range $tool := slice "COLMAP" "OpenMVS" "PMVS2" "AliceVision" "OpenSfM" }}
+                <div class="flex items-center">
+                    <span class="w-20 text-sm font-medium">{{ $tool }}</span>
+                    <div class="flex-1 mx-4">
+                        <div class="bg-gray-200 rounded-full h-2">
+                            <div id="progress-{{ $tool }}" class="bg-primary-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <span id="status-{{ $tool }}" class="text-sm text-gray-500">Waiting</span>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="results-section" class="hidden">
+        <h2 class="text-2xl font-semibold mb-4">Reconstruction Results</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {{ range $tool := slice "COLMAP" "OpenMVS" "PMVS2" "AliceVision" "OpenSfM" }}
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-4">{{ $tool }}</h3>
+                <div id="viewer-{{ $tool }}" class="h-64 bg-gray-100 rounded-lg mb-4"></div>
+                <div class="text-sm text-gray-600">
+                    <div class="flex justify-between">
+                        <span>Points:</span>
+                        <span id="points-{{ $tool }}">-</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Processing Time:</span>
+                        <span id="time-{{ $tool }}">-</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Memory Used:</span>
+                        <span id="memory-{{ $tool }}">-</span>
+                    </div>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</div>
+{{ end }}

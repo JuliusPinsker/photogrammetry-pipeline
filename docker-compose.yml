@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "1313:1313"
+    volumes:
+      - ./360_scenes:/app/static/datasets:ro  # Read-only for UI
+      - reconstruction_outputs:/app/static/results
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - reconstruction
+    restart: unless-stopped
+
+  reconstruction:
+    build: 
+      context: ./reconstruction
+      dockerfile: Dockerfile
+      args:
+        - GPU_AVAILABLE=${GPU_ENABLED:-false}
+    environment:
+      - GPU_ENABLED=${GPU_ENABLED:-false}
+      - DATASET_PATH=/datasets
+      - MAX_IMAGE_SIZE=${MAX_IMAGE_SIZE:-2048}
+    volumes:
+      - ./360_scenes:/datasets:ro
+      - reconstruction_outputs:/results
+      - ./test_data:/test_data:ro
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  testing:
+    build:
+      context: ./testing
+      dockerfile: Dockerfile
+    volumes:
+      - ./test_data:/test_data:ro
+      - ./tests:/tests:ro
+    environment:
+      - FRONTEND_URL=http://frontend:1313
+    depends_on:
+      - frontend
+      - reconstruction
+    profiles:
+      - testing
+
+volumes:
+  reconstruction_outputs:
+    driver: local
+
+networks:
+  default:
+    driver: bridge
