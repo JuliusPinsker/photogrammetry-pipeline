@@ -37,10 +37,10 @@ A dockerized platform to compare 5 non-neural 3D reconstruction tools using a mo
 3. **Build and start services**
    ```bash
    # CPU-only mode
-   docker-compose up --build
+   docker compose up --build
    
    # GPU-enabled mode (requires NVIDIA Docker)
-   GPU_ENABLED=true docker-compose up --build
+   GPU_ENABLED=true docker compose up --build
    ```
 
 4. **Access the platform**
@@ -121,13 +121,13 @@ Run the complete test suite:
 
 ```bash
 # Run all tests
-docker-compose --profile testing up --build testing
+docker compose --profile testing up --build testing
 
 # Run specific tests
-docker-compose run --rm testing pytest tests/test_reconstruction.py -v
+docker compose run --rm testing pytest tests/test_reconstruction.py -v
 
 # Generate HTML report
-docker-compose run --rm testing pytest tests/ --html=reports/test_report.html
+docker compose run --rm testing pytest tests/ --html=reports/test_report.html
 ```
 
 ## Configuration
@@ -195,7 +195,7 @@ sudo systemctl restart docker
 
 ```bash
 # Test GPU detection
-docker-compose run --rm reconstruction nvidia-smi
+docker compose run --rm reconstruction nvidia-smi
 
 # Check GPU status via API
 curl http://localhost:8000/gpu-status
@@ -226,7 +226,7 @@ The platform provides detailed metrics for each tool:
 2. **Frontend not loading**
    ```bash
    # Check service logs
-   docker-compose logs frontend
+   docker compose logs frontend
    
    # Verify port availability
    netstat -tlnp | grep 1313
@@ -235,7 +235,7 @@ The platform provides detailed metrics for each tool:
 3. **Reconstruction fails**
    ```bash
    # Check reconstruction service logs
-   docker-compose logs reconstruction
+   docker compose logs reconstruction
    
    # Verify tool availability
    curl http://localhost:8000/tools
@@ -245,11 +245,11 @@ The platform provides detailed metrics for each tool:
 
 ```bash
 # Access container shell
-docker-compose exec frontend sh
-docker-compose exec reconstruction bash
+docker compose exec frontend sh
+docker compose exec reconstruction bash
 
 # View real-time logs
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ## Contributing
