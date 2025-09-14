@@ -1,0 +1,21 @@
+baseURL = 'http://localhost:1313'
+languageCode = 'en-us'
+title = '3D Reconstruction Comparison Platform'
+theme = ''
+
+[params]
+  description = 'Compare 5 non-neural 3D reconstruction tools with drag-and-drop interface'
+  author = 'Julius Pinsker'
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
+[server]
+  [[server.headers]]
+    for = "/**"
+    [server.headers.values]
+      X-Frame-Options = "DENY"
+      X-Content-Type-Options = "nosniff"
+      Referrer-Policy = "strict-origin-when-cross-origin"

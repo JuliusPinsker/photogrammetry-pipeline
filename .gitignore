@@ -1,0 +1,40 @@
+# Build artifacts
+/frontend/node_modules/
+/frontend/public/
+/frontend/resources/
+/frontend/static/css/style.css
+
+# Dependencies
+node_modules/
+*.log
+
+# Generated files
+*.pyc
+__pycache__/
+.pytest_cache/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+reconstruction_outputs/
+
+# Temporary files
+/tmp/
+*.tmp
+*.temp
+
+# Test reports
+reports/
+test-results/
+
+# Environment files
+.env.local
+.env.production

@@ -1,0 +1,40 @@
+<div class="mb-8">
+    <h2 class="text-2xl font-semibold mb-4">Pre-loaded Datasets</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {{ range $dataset := slice "bicycle" "bonsai" "counter" "flowers" "garden" "kitchen" "treehill" }}
+        <div class="card cursor-pointer hover:shadow-lg transition-shadow dataset-card" data-dataset="{{ $dataset }}">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
+                    <span class="text-white font-bold text-lg">{{ substr $dataset 0 1 | upper }}</span>
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-semibold text-gray-900 capitalize">{{ $dataset }}</h3>
+                    <p class="text-sm text-gray-500">Multi-resolution dataset</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-gray-400">Resolutions</div>
+                    <div class="flex space-x-1">
+                        <span class="px-1 py-0.5 bg-green-100 text-green-800 text-xs rounded">1K</span>
+                        <span class="px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">2K</span>
+                        <span class="px-1 py-0.5 bg-purple-100 text-purple-800 text-xs rounded">4K</span>
+                        <span class="px-1 py-0.5 bg-orange-100 text-orange-800 text-xs rounded">8K</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <div class="flex justify-between text-sm text-gray-600">
+                    <span>Resolution:</span>
+                    <select class="resolution-selector text-xs border border-gray-300 rounded px-2 py-1" data-dataset="{{ $dataset }}">
+                        <option value="images">Normal</option>
+                        <option value="images_2">2K</option>
+                        <option value="images_4">4K</option>
+                        <option value="images_8">8K</option>
+                        <option value="sparse">Sparse</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+    </div>
+</div>
