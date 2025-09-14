@@ -14,8 +14,17 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
+# Check Docker Compose availability (v2 preferred, v1 fallback)
+COMPOSE_CMD=""
+if docker compose version &> /dev/null; then
+    COMPOSE_CMD="docker compose"
+    echo "✅ Docker Compose v2 detected"
+elif command -v docker-compose &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+    echo "✅ Docker Compose v1 detected"
+else
     echo "❌ Docker Compose is not installed"
+    echo "   Please install Docker Compose v2 (recommended) or v1"
     exit 1
 fi
 
@@ -51,11 +60,11 @@ echo "✅ Configuration validated"
 # Build and start services
 echo ""
 echo "🔨 Building services..."
-docker-compose build --no-cache
+$COMPOSE_CMD build --no-cache
 
 echo ""
 echo "🚀 Starting services..."
-docker-compose up -d
+$COMPOSE_CMD up -d
 
 # Wait for services to be ready
 echo ""
@@ -72,7 +81,7 @@ if curl -f http://localhost:1313 >/dev/null 2>&1; then
     echo "✅ Frontend is accessible"
 else
     echo "❌ Frontend health check failed"
-    docker-compose logs frontend
+    $COMPOSE_CMD logs frontend
     exit 1
 fi
 
@@ -82,7 +91,7 @@ if curl -f http://localhost:8000/health >/dev/null 2>&1; then
     echo "✅ Reconstruction API is healthy"
 else
     echo "❌ Reconstruction API health check failed"
-    docker-compose logs reconstruction
+    $COMPOSE_CMD logs reconstruction
     exit 1
 fi
 
@@ -110,11 +119,11 @@ fi
 # Run automated tests
 echo ""
 echo "🧪 Running automated tests..."
-if docker-compose --profile testing up --build testing; then
+if $COMPOSE_CMD --profile testing up --build testing; then
     echo "✅ All tests passed"
 else
     echo "❌ Some tests failed"
-    docker-compose logs testing
+    $COMPOSE_CMD logs testing
 fi
 
 # Performance test
@@ -153,4 +162,4 @@ echo "4. Start reconstruction and compare results"
 # Keep services running
 echo ""
 echo "Services are running. Press Ctrl+C to stop."
-echo "To stop services later, run: docker-compose down"
+echo "To stop services later, run: $COMPOSE_CMD down"
