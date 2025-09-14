@@ -21,9 +21,11 @@ RUN apt-get update && apt-get install -y \
 # Install PyTorch with CUDA support
 RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
-# Clone PIFuHD
+# Clone PIFuHD - pinned to stable commit (Sept 2025)
 WORKDIR /opt
-RUN git clone https://github.com/facebookresearch/pifuhd.git
+RUN git clone https://github.com/facebookresearch/pifuhd.git && \
+    cd pifuhd && \
+    git checkout e47c4d918aaedd5f5608192b130bda150b1fb0ab
 WORKDIR /opt/pifuhd
 
 # Install dependencies

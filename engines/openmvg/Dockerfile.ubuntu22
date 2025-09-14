@@ -1,32 +1,36 @@
+# OpenMVG + OpenMVS Photogrammetry Pipeline - Ubuntu 22.04 version
+# Combines structure-from-motion (OpenMVG) with multi-view stereo (OpenMVS)
+
 FROM ubuntu:22.04
 
-# Avoid interactive prompts during installation
+# Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies
+# Install system dependencies with newer Eigen3
 RUN apt-get update && apt-get install -y \
     git \
     cmake \
     build-essential \
-    libpng-dev \
-    libjpeg-dev \
-    libtiff-dev \
-    libglu1-mesa-dev \
-    libxrandr-dev \
-    libxi-dev \
-    libxinerama-dev \
-    libxcursor-dev \
     libeigen3-dev \
-    libceres-dev \
     libopencv-dev \
-    libboost-all-dev \
-    python3 \
-    python3-pip \
+    libceres-dev \
+    libomp-dev \
+    libboost-filesystem-dev \
+    libboost-program-options-dev \
+    libboost-system-dev \
+    libboost-iostreams-dev \
+    libcgal-dev \
+    libvtk9-dev \
+    libglfw3-dev \
+    libglew-dev \
     wget \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# Build OpenMVG - using stable v1.6 release for compatibility
+# Set working directory
 WORKDIR /opt
+
+# Build OpenMVG - using latest commit with Eigen3 fixes
 RUN git clone --recursive https://github.com/openMVG/openMVG.git && \
     cd openMVG && \
     git checkout c92ed1be && \
@@ -56,15 +60,15 @@ RUN git clone https://github.com/cdcseacave/openMVS.git && \
 # Update library paths
 RUN ldconfig
 
-# Create workspace directory
-WORKDIR /workspace
+# Set environment variables for OpenMVG and OpenMVS
+ENV PATH="/usr/local/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 
-# Copy reconstruction script
-COPY reconstruct.py /workspace/
-COPY requirements.txt /workspace/
-RUN pip3 install -r requirements.txt
+# Create data directories
+RUN mkdir -p /data/input /data/output
 
-# Make script executable
-RUN chmod +x /workspace/reconstruct.py
+# Set working directory for processing
+WORKDIR /data
 
-CMD ["python3", "/workspace/reconstruct.py"]
+# Default command
+CMD ["bash"]

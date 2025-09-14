@@ -28,11 +28,11 @@ RUN apt-get update && apt-get install -y \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Download and compile COLMAP
+# Download and compile COLMAP - pinned to stable commit (3.8 release)
 WORKDIR /opt
 RUN git clone https://github.com/colmap/colmap.git && \
     cd colmap && \
-    git checkout 3.7 && \
+    git checkout 3.8 && \
     mkdir build && \
     cd build && \
     cmake .. -DCMAKE_BUILD_TYPE=Release && \

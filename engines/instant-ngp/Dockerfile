@@ -23,10 +23,12 @@ RUN apt-get update && apt-get install -y \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Instant-NGP
+# Install Instant-NGP - pinned to stable commit (Sept 2025)
 WORKDIR /opt
 RUN git clone --recursive https://github.com/NVlabs/instant-ngp.git && \
     cd instant-ngp && \
+    git checkout be57ba8b80e2ba4925af6c0014fd153cd62fde2c && \
+    git submodule update --init --recursive && \
     cmake . -B build && \
     cmake --build build --config RelWithDebInfo -j$(nproc)
 

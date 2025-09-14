@@ -284,7 +284,26 @@ sudo systemctl restart docker
 docker run --rm --gpus all nvidia/cuda:11.8-base-ubuntu20.04 nvidia-smi
 ```
 
-### 6.2 Quick Start
+### 6.2 Version Pinning & Reproducibility
+
+**All external repositories are pinned to specific commits** to ensure reproducible builds. See [`VERSION_PINNING.md`](VERSION_PINNING.md) for the complete list of commit hashes and update procedures.
+
+**Key Benefits:**
+- **Consistent builds** across different environments and times
+- **Verified compatibility** between all components
+- **Easy rollback** to working versions if issues arise
+- **Controlled updates** with proper testing before version bumps
+
+**To verify current versions:**
+```bash
+# Check all pinned versions
+cat VERSION_PINNING.md
+
+# Verify commits are still accessible
+./scripts/verify-versions.sh
+```
+
+### 6.3 Quick Start
 
 **1. Clone the Repository:**
 ```bash
@@ -311,9 +330,9 @@ docker compose up -d
 open http://localhost:8080
 ```
 
-### 6.3 Usage Examples
+### 6.4 Usage Examples
 
-#### 6.3.1 Web Interface Usage
+#### 6.4.1 Web Interface Usage
 1. **Navigate to http://localhost:8080**
 2. **Select Input Method:**
    - Upload your own images (drag & drop)

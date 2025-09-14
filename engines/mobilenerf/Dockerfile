@@ -11,10 +11,11 @@ RUN apt-get update && apt-get install -y \
 # Install PyTorch CPU version for mobile compatibility
 RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
-# Clone MobileNeRF
+# Clone MobileNeRF - pinned to stable commit (Sept 2025)
 WORKDIR /opt
 RUN git clone https://github.com/google-research/google-research.git && \
     cd google-research && \
+    git checkout e8977b905d1d0db300d4eb7bc54a0620d96e587d && \
     git sparse-checkout init --cone && \
     git sparse-checkout set mobilenerf
 

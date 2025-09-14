@@ -25,9 +25,12 @@ RUN apt-get update && apt-get install -y \
 # Install Python dependencies
 RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
-# Clone and install 3D Gaussian Splatting
+# Clone and install 3D Gaussian Splatting - pinned to stable commit (Sept 2025)
 WORKDIR /opt
-RUN git clone https://github.com/graphdeco-inria/gaussian-splatting --recursive
+RUN git clone https://github.com/graphdeco-inria/gaussian-splatting --recursive && \
+    cd gaussian-splatting && \
+    git checkout 54c035f7834b564019656c3e3fcc3646292f727d && \
+    git submodule update --init --recursive
 WORKDIR /opt/gaussian-splatting
 
 # Install submodules
